@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from './supabaseClient';
 import { X, Mail, Lock, User } from 'lucide-react';
 
@@ -10,6 +10,25 @@ export default function AuthModal({ isOpen, onClose }) {
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  // Poll for sign-in state once the confirmation message is displayed
+  useEffect(() => {
+    let interval;
+    if (successMessage) {
+      interval = setInterval(async () => {
+        // Attempt to sign in silently or check existing session state
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session?.user) {
+          clearInterval(interval);
+          onClose();
+          window.location.reload();
+        }
+      }, 3000);
+    }
+
+    return () => clearInterval(interval);
+  }, [successMessage, onClose]);
 
   if (!isOpen) return null;
 
@@ -33,7 +52,7 @@ export default function AuthModal({ isOpen, onClose }) {
         if (signUpError) throw signUpError;
 
         if (!data?.session) {
-          setSuccessMessage('Check your email inbox for the confirmation link!');
+          setSuccessMessage('Check your email inbox! This window will auto-redirect once confirmed.');
           return;
         }
       } else {
@@ -76,8 +95,12 @@ export default function AuthModal({ isOpen, onClose }) {
         )}
 
         {successMessage && (
-          <div className="mb-4 p-3 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs rounded-xl">
-            {successMessage}
+          <div className="mb-4 p-3 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs rounded-xl flex items-center gap-2">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+            </span>
+            <span>{successMessage}</span>
           </div>
         )}
 

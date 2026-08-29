@@ -14,7 +14,6 @@ if (!supabaseUrl || !supabaseKey) {
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 const realStoreBatch = [
-  // Existing Electronics & Groceries
   {
     store_name: "Abed Tahan",
     city_name: "Beirut",
@@ -43,8 +42,6 @@ const realStoreBatch = [
     sales_count: 310,
     image_url: "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=600&q=80"
   },
-
-  // New Additions: Electronics & Appliances
   {
     store_name: "Abed Tahan",
     city_name: "Beirut",
@@ -73,8 +70,6 @@ const realStoreBatch = [
     sales_count: 215,
     image_url: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=600&q=80"
   },
-
-  // New Additions: Supermarkets & Groceries
   {
     store_name: "Spinneys",
     city_name: "Jounieh",
@@ -103,8 +98,6 @@ const realStoreBatch = [
     sales_count: 890,
     image_url: "https://images.unsplash.com/photo-1559056199-641a0ac8b55e?auto=format&fit=crop&w=600&q=80"
   },
-
-  // New Additions: Fashion & Beauty
   {
     store_name: "Feel22",
     city_name: "Byblos",
@@ -153,13 +146,19 @@ async function runIngestion() {
     const storeSlug = slugify(item.store_name);
     const categorySlug = slugify(item.category_name);
 
-    // 1. Get or Create City (check by slug OR name)
-    let { data: city } = await supabase.from('cities').select('id').or(`slug.eq.${citySlug},name.ilike.${item.city_name}`).maybeSingle();
+    // 1. Get or Create City
+    let { data: city } = await supabase
+      .from('cities')
+      .select('id')
+      .or(`slug.eq.${citySlug},name.ilike.${item.city_name}`)
+      .maybeSingle();
+
     if (!city) {
-      const { data: newCity, error: cityErr } = await supabase.from('cities').insert({ 
-        name: item.city_name,
-        slug: citySlug
-      }).select().single();
+      const { data: newCity, error: cityErr } = await supabase
+        .from('cities')
+        .insert({ name: item.city_name, slug: citySlug })
+        .select()
+        .single();
       
       if (cityErr) {
         console.error(`❌ Error inserting city ${item.city_name}:`, cityErr.message);
@@ -168,16 +167,25 @@ async function runIngestion() {
       city = newCity;
     }
 
-    // 2. Get or Create Store (check by slug OR name)
-    let { data: store } = await supabase.from('stores').select('id').or(`slug.eq.${storeSlug},name.ilike.${item.store_name}`).maybeSingle();
+    // 2. Get or Create Store
+    let { data: store } = await supabase
+      .from('stores')
+      .select('id')
+      .or(`slug.eq.${storeSlug},name.ilike.${item.store_name}`)
+      .maybeSingle();
+
     if (!store) {
-      const { data: newStore, error: storeErr } = await supabase.from('stores').insert({
-        name: item.store_name,
-        slug: storeSlug,
-        city_id: city.id,
-        website_url: item.website_url,
-        delivery_available: true
-      }).select().single();
+      const { data: newStore, error: storeErr } = await supabase
+        .from('stores')
+        .insert({
+          name: item.store_name,
+          slug: storeSlug,
+          city_id: city.id,
+          website_url: item.website_url,
+          delivery_available: true
+        })
+        .select()
+        .single();
 
       if (storeErr) {
         console.error(`❌ Error inserting store ${item.store_name}:`, storeErr.message);
@@ -186,13 +194,19 @@ async function runIngestion() {
       store = newStore;
     }
 
-    // 3. Get or Create Category (check by slug OR name)
-    let { data: category } = await supabase.from('categories').select('id').or(`slug.eq.${categorySlug},name.ilike.${item.category_name}`).maybeSingle();
+    // 3. Get or Create Category
+    let { data: category } = await supabase
+      .from('categories')
+      .select('id')
+      .or(`slug.eq.${categorySlug},name.ilike.${item.category_name}`)
+      .maybeSingle();
+
     if (!category) {
-      const { data: newCategory, error: catErr } = await supabase.from('categories').insert({ 
-        name: item.category_name,
-        slug: categorySlug
-      }).select().single();
+      const { data: newCategory, error: catErr } = await supabase
+        .from('categories')
+        .insert({ name: item.category_name, slug: categorySlug })
+        .select()
+        .single();
 
       if (catErr) {
         console.error(`❌ Error inserting category ${item.category_name}:`, catErr.message);
@@ -202,18 +216,20 @@ async function runIngestion() {
     }
 
     // 4. Upsert Product Record
-    const { error: prodErr } = await supabase.from('products').upsert({
-      store_id: store.id,
-      category_id: category.id,
-      title: item.title,
-      description: item.description,
-      price_usd: item.price_usd,
-      price_lbp: item.price_lbp,
-      rating: item.rating,
-      quality_score: item.quality_score,
-      sales_count: item.sales_count,
-      image_url: item.image_url
-    });
+    const { error: prodErr } = await supabase
+      .from('products')
+      .upsert({
+        store_id: store.id,
+        category_id: category.id,
+        title: item.title,
+        description: item.description,
+        price_usd: item.price_usd,
+        price_lbp: item.price_lbp,
+        rating: item.rating,
+        quality_score: item.quality_score,
+        sales_count: item.sales_count,
+        image_url: item.image_url
+      }, { onConflict: 'title,store_id' });
 
     if (prodErr) {
       console.error(`❌ Failed to insert product ${item.title}:`, prodErr.message);

@@ -12,7 +12,9 @@ import {
   Cookie, 
   Coffee, 
   Smartphone, 
-  Layers 
+  Layers,
+  Search,
+  X
 } from 'lucide-react';
 
 const CATEGORY_ICONS = {
@@ -28,6 +30,7 @@ export default function Home() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('quality');
   const [loading, setLoading] = useState(true);
   const [isCityModalOpen, setIsCityModalOpen] = useState(false);
@@ -88,6 +91,19 @@ export default function Home() {
     fetchProducts();
   }, [selectedCity, selectedCategory, sortBy]);
 
+  // Client-side dynamic filtering for search
+  const filteredProducts = products.filter((product) => {
+    const query = searchQuery.toLowerCase().trim();
+    if (!query) return true;
+
+    const matchesTitle = product.title?.toLowerCase().includes(query);
+    const matchesDescription = product.description?.toLowerCase().includes(query);
+    const matchesStore = product.stores?.name?.toLowerCase().includes(query);
+    const matchesCategory = product.categories?.name?.toLowerCase().includes(query);
+
+    return matchesTitle || matchesDescription || matchesStore || matchesCategory;
+  });
+
   return (
     <div className="min-h-screen bg-stone-950 text-stone-100 p-4 sm:p-6 lg:p-8 w-full relative overflow-hidden">
       {/* Landing Page Ambient Radial Glow Effects */}
@@ -118,6 +134,28 @@ export default function Home() {
             <span>Location: <strong className="text-emerald-400">{currentCity?.name || 'Select City'}</strong></span>
           </button>
         </header>
+
+        {/* Global Search Bar */}
+        <div className="relative w-full">
+          <div className="relative flex items-center">
+            <Search className="w-5 h-5 text-stone-400 absolute left-4 pointer-events-none" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder={`Search products, stores, or categories in ${currentCity?.name || 'your area'}...`}
+              className="w-full bg-stone-900/80 border border-stone-800 rounded-2xl pl-12 pr-10 py-3.5 text-sm text-stone-100 placeholder-stone-500 focus:outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/60 transition-all backdrop-blur-md shadow-inner"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-4 text-stone-500 hover:text-stone-300 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        </div>
 
         {/* Category Horizontal Filter Bar */}
         <div className="flex items-center gap-2.5 overflow-x-auto pb-2 scrollbar-none w-full">
@@ -189,16 +227,20 @@ export default function Home() {
           <div className="py-20 text-center text-stone-500 text-sm font-semibold">
             Loading items for {currentCity?.name}...
           </div>
-        ) : products.length === 0 ? (
+        ) : filteredProducts.length === 0 ? (
           <div className="py-20 text-center bg-stone-900/30 border border-stone-800 rounded-3xl p-8">
             <p className="text-stone-400 text-sm font-semibold mb-2">
-              No items found for {currentCity?.name} in this category.
+              {searchQuery
+                ? `No items matching "${searchQuery}" in ${currentCity?.name}.`
+                : `No items found for ${currentCity?.name} in this category.`}
             </p>
-            <p className="text-xs text-stone-500">Try switching categories or locations to view options.</p>
+            <p className="text-xs text-stone-500">
+              {searchQuery ? 'Try checking your spelling or clear the search query.' : 'Try switching categories or locations to view options.'}
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {products.map((product) => (
+            {filteredProducts.map((product) => (
               <div
                 key={product.id}
                 className="bg-stone-900/70 backdrop-blur-md border border-stone-800/80 rounded-2xl p-5 flex flex-col justify-between hover:border-stone-700 transition-all shadow-xl group"

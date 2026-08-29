@@ -66,6 +66,7 @@ export async function createOrder(cartItems, shippingAddress, tipAmount) {
         tip_amount: tip,
         total_amount: totalAmount,
         status: 'pending',
+        payment_method: 'cash',
       },
     ])
     .select()

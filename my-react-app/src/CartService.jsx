@@ -9,7 +9,7 @@ export async function fetchUserCart(userId) {
 
   if (error) throw error;
 
-  return data.map((item) => ({
+  return (data || []).map((item) => ({
     ...item.products,
     quantity: item.quantity,
   }));
@@ -19,17 +19,22 @@ export async function syncUserCart(cart) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return;
 
+  // Clear existing items for the user
   const { error: deleteError } = await supabase
     .from('cart_items')
     .delete()
     .eq('user_id', user.id);
 
-  if (deleteError) throw deleteError;
+  if (deleteError) {
+    console.error('Failed to clear cart:', deleteError);
+    throw deleteError;
+  }
 
+  // Insert new items if cart has content
   if (cart && cart.length > 0) {
     const payload = cart.map((item) => ({
       user_id: user.id,
-      product_id: item.id,
+      product_id: Number(item.id), // Ensures numeric parsing for bigint/integer columns
       quantity: item.quantity,
     }));
 
@@ -37,7 +42,10 @@ export async function syncUserCart(cart) {
       .from('cart_items')
       .insert(payload);
 
-    if (insertError) throw insertError;
+    if (insertError) {
+      console.error('Failed to insert cart items:', insertError);
+      throw insertError;
+    }
   }
 }
 
@@ -68,7 +76,7 @@ export async function createOrder(cartItems, shippingAddress, tipAmount) {
 
   const orderItems = cartItems.map((item) => ({
     order_id: order.id,
-    product_id: item.id,
+    product_id: Number(item.id),
     quantity: item.quantity,
     price: item.price,
   }));

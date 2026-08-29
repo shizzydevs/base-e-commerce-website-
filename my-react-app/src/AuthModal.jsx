@@ -11,24 +11,17 @@ export default function AuthModal({ isOpen, onClose }) {
   const [successMessage, setSuccessMessage] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // Poll for background sign-in using stored credentials once signup email is sent
   useEffect(() => {
     let interval;
     if (successMessage && isSignUp) {
       interval = setInterval(async () => {
-        const { data } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-
+        const { data } = await supabase.auth.signInWithPassword({ email, password });
         if (data?.session) {
           clearInterval(interval);
           onClose();
-          window.location.reload();
         }
       }, 3000);
     }
-
     return () => clearInterval(interval);
   }, [successMessage, isSignUp, email, password, onClose]);
 
@@ -54,15 +47,11 @@ export default function AuthModal({ isOpen, onClose }) {
         if (signUpError) throw signUpError;
 
         if (!data?.session) {
-          setSuccessMessage('Check your email inbox! This page will auto-login once confirmed.');
+          setSuccessMessage('Check your email inbox! Page will auto-login when verified.');
           return;
         }
       } else {
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-
+        const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
         if (signInError) throw signInError;
       }
       onClose();
@@ -75,7 +64,7 @@ export default function AuthModal({ isOpen, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 bg-stone-950/80 backdrop-blur-md flex items-center justify-center p-4">
-      <div className="bg-stone-800 border border-stone-700 rounded-3xl max-w-md w-full p-6 relative shadow-2xl">
+      <div className="bg-stone-800 border border-stone-700 rounded-3xl max-w-md w-full p-6 relative shadow-2xl max-h-[90vh] overflow-y-auto">
         <button
           onClick={onClose}
           className="absolute top-4 right-4 p-2 bg-stone-900/80 rounded-full text-stone-400 hover:text-white transition-colors"
@@ -109,7 +98,7 @@ export default function AuthModal({ isOpen, onClose }) {
         <form onSubmit={handleSubmit} className="space-y-4">
           {isSignUp && (
             <div className="relative flex items-center bg-stone-900 border border-stone-700 rounded-xl px-3 py-2.5">
-              <User className="w-4 h-4 text-stone-400 mr-2" />
+              <User className="w-4 h-4 text-stone-400 mr-2 shrink-0" />
               <input
                 type="text"
                 placeholder="Full Name"
@@ -122,7 +111,7 @@ export default function AuthModal({ isOpen, onClose }) {
           )}
 
           <div className="relative flex items-center bg-stone-900 border border-stone-700 rounded-xl px-3 py-2.5">
-            <Mail className="w-4 h-4 text-stone-400 mr-2" />
+            <Mail className="w-4 h-4 text-stone-400 mr-2 shrink-0" />
             <input
               type="email"
               placeholder="Email Address"
@@ -134,7 +123,7 @@ export default function AuthModal({ isOpen, onClose }) {
           </div>
 
           <div className="relative flex items-center bg-stone-900 border border-stone-700 rounded-xl px-3 py-2.5">
-            <Lock className="w-4 h-4 text-stone-400 mr-2" />
+            <Lock className="w-4 h-4 text-stone-400 mr-2 shrink-0" />
             <input
               type="password"
               placeholder="Password"

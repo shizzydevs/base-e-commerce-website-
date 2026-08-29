@@ -1,5 +1,5 @@
 import { supabase } from './supabaseClient';
-
+import { DELIVERY_FEE } from './cartUtils';
 
 export async function fetchUserCart(userId) {
   const { data, error } = await supabase
@@ -7,9 +7,7 @@ export async function fetchUserCart(userId) {
     .select('quantity, products(*)')
     .eq('user_id', userId);
 
-  if (error) {
-    throw error;
-  }
+  if (error) throw error;
 
   return data.map((item) => ({
     ...item.products,
@@ -18,11 +16,9 @@ export async function fetchUserCart(userId) {
 }
 
 export async function syncUserCart(cart) {
-  // Get current logged-in user session
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return;
 
-  // 1. Delete existing cart items for this user
   const { error: deleteError } = await supabase
     .from('cart_items')
     .delete()
@@ -30,7 +26,6 @@ export async function syncUserCart(cart) {
 
   if (deleteError) throw deleteError;
 
-  // 2. Insert new cart items if cart isn't empty
   if (cart && cart.length > 0) {
     const payload = cart.map((item) => ({
       user_id: user.id,
@@ -46,17 +41,14 @@ export async function syncUserCart(cart) {
   }
 }
 
-
 export async function createOrder(cartItems, shippingAddress, tipAmount) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("User must be logged in to place an order");
 
-  const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const deliveryFee = 2.99;
+  const subtotal = cartItems.reduce((sum, item) => sum + (Number(item.price) * item.quantity), 0);
   const tip = Number(tipAmount) || 0;
-  const totalAmount = subtotal + deliveryFee + tip;
+  const totalAmount = subtotal + DELIVERY_FEE + tip;
 
-  // 1. Create order record
   const { data: order, error: orderError } = await supabase
     .from('orders')
     .insert([
@@ -74,13 +66,11 @@ export async function createOrder(cartItems, shippingAddress, tipAmount) {
 
   if (orderError) throw orderError;
 
-  // 2. Insert order items
-  // 2. Insert order items
   const orderItems = cartItems.map((item) => ({
     order_id: order.id,
     product_id: item.id,
     quantity: item.quantity,
-    price: item.price, // Changed 'price_at_purchase' to 'price'
+    price: item.price,
   }));
 
   const { error: itemsError } = await supabase
@@ -89,7 +79,6 @@ export async function createOrder(cartItems, shippingAddress, tipAmount) {
 
   if (itemsError) throw itemsError;
 
-  // 3. Clear user's cart
   await supabase
     .from('cart_items')
     .delete()

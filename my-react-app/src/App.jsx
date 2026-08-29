@@ -23,7 +23,7 @@ export default function App() {
       cartRef.current = savedCart;
       setCart(savedCart);
     } catch {
-      setCartError('We could not load your saved cart. Please refresh and try again.');
+      setCartError('Could not load your cart. Please try again.');
     }
   };
 
@@ -91,10 +91,7 @@ export default function App() {
     return (
       <>
         <Welcome onGetStarted={() => setIsAuthOpen(true)} />
-        <AuthModal
-          isOpen={isAuthOpen}
-          onClose={() => setIsAuthOpen(false)}
-        />
+        <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
       </>
     );
   }
@@ -129,18 +126,14 @@ export default function App() {
   return (
     <>
       <Home
-        user={user ? { name: user.user_metadata?.full_name || user.email } : null}
+        user={user}
         cart={cart}
         setCart={handleSetCart}
         onOpenCart={() => setCurrentScreen('cart')}
         onLogout={handleLogout}
         onOpenAuth={() => setIsAuthOpen(true)}
       />
-
-      <AuthModal
-        isOpen={isAuthOpen}
-        onClose={() => setIsAuthOpen(false)}
-      />
+      <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
     </>
   );
 }

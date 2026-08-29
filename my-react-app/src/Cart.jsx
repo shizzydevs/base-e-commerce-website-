@@ -29,13 +29,12 @@ export default function Cart({ cart, setCart, error, onBackToStore, onProceedToC
   const grandTotal = subtotal + deliveryFee;
 
   return (
-    <div className="min-h-screen bg-stone-900 text-stone-100 font-sans p-6">
-      <div className="max-w-4xl mx-auto space-y-8">
-
-        <div className="flex items-center justify-between border-b border-stone-800 pb-6">
+    <div className="min-h-screen bg-stone-900 text-stone-100 font-sans p-4 sm:p-6">
+      <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8">
+        <div className="flex items-center justify-between border-b border-stone-800 pb-4 sm:pb-6">
           <button
             onClick={onBackToStore}
-            className="flex items-center gap-2 text-stone-400 hover:text-white transition-colors text-sm font-semibold"
+            className="flex items-center gap-2 text-stone-400 hover:text-white transition-colors text-xs sm:text-sm font-semibold"
           >
             <ArrowLeft className="w-4 h-4" /> Continue Shopping
           </button>
@@ -50,8 +49,8 @@ export default function Cart({ cart, setCart, error, onBackToStore, onProceedToC
           )}
         </div>
 
-        <h1 className="text-3xl font-black text-white flex items-center gap-3">
-          <ShoppingBag className="w-8 h-8 text-emerald-400" /> Your Produce Cart
+        <h1 className="text-2xl sm:text-3xl font-black text-white flex items-center gap-3">
+          <ShoppingBag className="w-7 h-7 sm:w-8 sm:h-8 text-emerald-400" /> Your Produce Cart
         </h1>
 
         {error && (
@@ -71,8 +70,7 @@ export default function Cart({ cart, setCart, error, onBackToStore, onProceedToC
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
             <div className="lg:col-span-2 space-y-4">
               {cart.map((item) => {
                 const itemPrice = Number(item.price);
@@ -81,32 +79,32 @@ export default function Cart({ cart, setCart, error, onBackToStore, onProceedToC
                 return (
                   <div
                     key={item.id}
-                    className="flex items-center justify-between bg-stone-800/60 border border-stone-700/60 p-4 rounded-2xl gap-4"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between bg-stone-800/60 border border-stone-700/60 p-4 rounded-2xl gap-4"
                   >
-                    <img
-                      src={item.image}
-                      alt={item.name}
-                      className="w-20 h-20 object-cover rounded-xl bg-stone-900 flex-shrink-0"
-                    />
-
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-white text-base truncate">
-                        {item.name}
-                      </h3>
-                      <p className="text-xs text-stone-400 truncate">
-                        by {item.producer}
-                      </p>
-                      <span className="text-xs font-semibold text-emerald-400 mt-1 block">
-                        ${itemPrice.toFixed(2)} each
-                      </span>
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-xl bg-stone-900 flex-shrink-0"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-bold text-white text-sm sm:text-base truncate">
+                          {item.name}
+                        </h3>
+                        <p className="text-xs text-stone-400 truncate">
+                          by {item.producer}
+                        </p>
+                        <span className="text-xs font-semibold text-emerald-400 mt-1 block">
+                          ${itemPrice.toFixed(2)} each
+                        </span>
+                      </div>
                     </div>
 
-                    <div className="flex items-center gap-3">
-
+                    <div className="flex items-center justify-between sm:justify-end gap-3 pt-2 sm:pt-0 border-t sm:border-0 border-stone-700/50">
                       <div className="flex items-center gap-1.5 bg-stone-900 border border-stone-700 p-1 rounded-xl">
                         <button
                           onClick={() => handleUpdateQuantity(item.id, -1)}
-                          className="p-1 hover:bg-stone-800 text-stone-300 hover:text-white rounded-lg transition-colors"
+                          className="p-1.5 hover:bg-stone-800 text-stone-300 hover:text-white rounded-lg transition-colors"
                         >
                           <Minus className="w-3.5 h-3.5" />
                         </button>
@@ -115,7 +113,7 @@ export default function Cart({ cart, setCart, error, onBackToStore, onProceedToC
                         </span>
                         <button
                           onClick={() => handleUpdateQuantity(item.id, 1)}
-                          className="p-1 hover:bg-stone-800 text-stone-300 hover:text-white rounded-lg transition-colors"
+                          className="p-1.5 hover:bg-stone-800 text-stone-300 hover:text-white rounded-lg transition-colors"
                         >
                           <Plus className="w-3.5 h-3.5" />
                         </button>
@@ -161,7 +159,7 @@ export default function Cart({ cart, setCart, error, onBackToStore, onProceedToC
 
               <button
                 onClick={onProceedToCheckout}
-                className="w-full py-3.5 bg-emerald-500 hover:bg-emerald-400 active:scale-98 text-stone-950 font-bold rounded-xl transition-all shadow-lg shadow-emerald-500/20"
+                className="w-full py-3.5 bg-emerald-500 hover:bg-emerald-400 text-stone-950 font-bold rounded-xl transition-all shadow-lg shadow-emerald-500/20"
               >
                 Proceed to Checkout
               </button>

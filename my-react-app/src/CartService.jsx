@@ -1,5 +1,5 @@
 import { supabase } from './supabaseClient';
-import { toCartPayload } from './cartUtils';
+
 
 export async function fetchUserCart(userId) {
   const { data, error } = await supabase
@@ -48,12 +48,50 @@ export async function syncUserCart(cart) {
 
 
 export async function createOrder(cartItems, shippingAddress, tipAmount) {
-  const { data, error } = await supabase.rpc('place_cash_order', {
-    p_items: toCartPayload(cartItems),
-    p_shipping_address: shippingAddress.trim(),
-    p_tip_amount: Number(tipAmount) || 0,
-  });
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("User must be logged in to place an order");
 
-  if (error) throw error;
-  return data;
+  const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const deliveryFee = 2.99;
+  const tip = Number(tipAmount) || 0;
+  const totalAmount = subtotal + deliveryFee + tip;
+
+  // 1. Create order record
+  const { data: order, error: orderError } = await supabase
+    .from('orders')
+    .insert([
+      {
+        user_id: user.id,
+        shipping_address: shippingAddress.trim(),
+        tip_amount: tip,
+        total_amount: totalAmount,
+        status: 'pending',
+      },
+    ])
+    .select()
+    .single();
+
+  if (orderError) throw orderError;
+
+  // 2. Insert order items
+  const orderItems = cartItems.map((item) => ({
+    order_id: order.id,
+    product_id: item.id,
+    quantity: item.quantity,
+    price_at_purchase: item.price,
+  }));
+
+  const { error: itemsError } = await supabase
+    .from('order_items')
+    .insert(orderItems);
+
+  if (itemsError) throw itemsError;
+
+  // 3. Clear user's cart
+  await supabase
+    .from('cart_items')
+    .delete()
+    .eq('user_id', user.id);
+
+  return order;
 }

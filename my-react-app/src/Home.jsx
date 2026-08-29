@@ -4,7 +4,6 @@ import { useLocation } from './useLocation';
 import CityModal from './CityModal';
 import { MapPin, ArrowUpDown, ExternalLink, Star, Flame, ShoppingBag, Cookie, Coffee, Smartphone, Layers } from 'lucide-react';
 
-// Icon mapping for database category icons
 const CATEGORY_ICONS = {
   ShoppingBag: ShoppingBag,
   Cookie: Cookie,
@@ -18,14 +17,12 @@ export default function Home() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
-  const [sortBy, setSortBy] = useState('quality'); // Default sort by quality
+  const [sortBy, setSortBy] = useState('quality');
   const [loading, setLoading] = useState(true);
   const [isCityModalOpen, setIsCityModalOpen] = useState(false);
 
-  // Active City details
   const currentCity = cities.find((c) => c.id === selectedCity);
 
-  // 1. Fetch Categories
   useEffect(() => {
     async function fetchCategories() {
       const { data, error } = await supabase.from('categories').select('*').order('name');
@@ -34,7 +31,6 @@ export default function Home() {
     fetchCategories();
   }, []);
 
-  // 2. Fetch Filtered & Sorted Products from Database
   useEffect(() => {
     async function fetchProducts() {
       if (!selectedCity) return;
@@ -53,7 +49,6 @@ export default function Home() {
         query = query.eq('category_id', selectedCategory);
       }
 
-      // Apply sorting option
       switch (sortBy) {
         case 'quality':
           query = query.order('quality_score', { ascending: false });
@@ -83,7 +78,7 @@ export default function Home() {
   }, [selectedCity, selectedCategory, sortBy]);
 
   return (
-    <div className="min-h-screen bg-stone-950 text-stone-100 p-4 md:p-8 max-w-7xl mx-auto">
+    <div className="min-h-screen bg-stone-950 text-stone-100 p-4 md:p-8 w-full max-w-7xl mx-auto">
       {/* City Modal */}
       <CityModal isOpen={isCityModalOpen} onClose={() => setIsCityModalOpen(false)} />
 
@@ -98,7 +93,7 @@ export default function Home() {
 
         <button
           onClick={() => setIsCityModalOpen(true)}
-          className="flex items-center gap-2 bg-stone-900 border border-stone-700 hover:border-emerald-500/50 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all text-stone-200 hover:text-white"
+          className="flex items-center gap-2 bg-stone-900 border border-stone-700 hover:border-emerald-500/50 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all text-stone-200 hover:text-white shrink-0"
         >
           <MapPin className="w-4 h-4 text-emerald-400" />
           <span>Location: <strong className="text-emerald-400">{currentCity?.name || 'Select City'}</strong></span>
@@ -109,14 +104,14 @@ export default function Home() {
       <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-6 scrollbar-none">
         <button
           onClick={() => setSelectedCategory(null)}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all border ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold shrink-0 transition-all border ${
             selectedCategory === null
               ? 'bg-emerald-500 text-stone-950 border-emerald-400 shadow-lg shadow-emerald-500/10'
               : 'bg-stone-900 border-stone-800 text-stone-400 hover:text-white hover:border-stone-700'
           }`}
         >
-          <Layers className="w-4 h-4" />
-          All Categories
+          <Layers className="w-4 h-4 shrink-0" />
+          <span>All Categories</span>
         </button>
 
         {categories.map((cat) => {
@@ -127,14 +122,14 @@ export default function Home() {
             <button
               key={cat.id}
               onClick={() => setSelectedCategory(isSelected ? null : cat.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all border ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold shrink-0 transition-all border ${
                 isSelected
                   ? 'bg-emerald-500 text-stone-950 border-emerald-400 shadow-lg shadow-emerald-500/10'
                   : 'bg-stone-900 border-stone-800 text-stone-400 hover:text-white hover:border-stone-700'
               }`}
             >
-              <IconComponent className="w-4 h-4" />
-              {cat.name}
+              <IconComponent className="w-4 h-4 shrink-0" />
+              <span>{cat.name}</span>
             </button>
           );
         })}
@@ -142,8 +137,8 @@ export default function Home() {
 
       {/* Sort & Filter Controls */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 bg-stone-900/50 p-4 border border-stone-800/80 rounded-2xl">
-        <div className="flex items-center gap-2 text-xs text-stone-400">
-          <ArrowUpDown className="w-4 h-4 text-emerald-400" />
+        <div className="flex items-center gap-2 text-xs text-stone-400 shrink-0">
+          <ArrowUpDown className="w-4 h-4 text-emerald-400 shrink-0" />
           <span className="font-semibold">Sort Feed By:</span>
         </div>
 
@@ -179,7 +174,7 @@ export default function Home() {
           <p className="text-xs text-stone-500">Try switching categories or locations to view options.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {products.map((product) => (
             <div
               key={product.id}
@@ -188,15 +183,13 @@ export default function Home() {
               <div>
                 {/* Store Header Info */}
                 <div className="flex items-center justify-between gap-2 pb-3 mb-3 border-b border-stone-800 text-xs">
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-stone-300">{product.stores.name}</span>
-                  </div>
+                  <span className="font-bold text-stone-300 truncate">{product.stores.name}</span>
                   {product.stores.website_url && (
                     <a
                       href={product.stores.website_url}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-emerald-400 hover:text-emerald-300 flex items-center gap-1 font-semibold text-[11px]"
+                      className="text-emerald-400 hover:text-emerald-300 flex items-center gap-1 font-semibold text-[11px] shrink-0"
                     >
                       Visit Store <ExternalLink className="w-3 h-3" />
                     </a>
@@ -209,14 +202,14 @@ export default function Home() {
                     <img src={product.image_url} alt={product.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                   </div>
                 ) : (
-                  <div className="h-44 w-full bg-stone-950 rounded-xl mb-3 flex items-center justify-center text-stone-700 text-xs font-bold">
+                  <div className="h-44 w-full bg-stone-950 rounded-xl mb-3 flex items-center justify-center text-stone-700 text-xs font-bold border border-stone-800/50">
                     No Image Available
                   </div>
                 )}
 
                 {/* Title & Description */}
-                <h3 className="text-base font-bold text-white mb-1">{product.title}</h3>
-                <p className="text-xs text-stone-400 line-clamp-2 mb-4">{product.description}</p>
+                <h3 className="text-base font-bold text-white mb-1 line-clamp-1">{product.title}</h3>
+                <p className="text-xs text-stone-400 line-clamp-2 mb-4 min-h-[32px]">{product.description}</p>
               </div>
 
               {/* Badges & Metrics */}
@@ -226,10 +219,10 @@ export default function Home() {
                     <Star className="w-3.5 h-3.5 fill-amber-400" />
                     {product.rating}
                   </span>
-                  <span className="text-stone-400 font-medium">
+                  <span className="text-stone-400 font-medium text-[11px]">
                     Quality: <strong className="text-emerald-400">{product.quality_score}%</strong>
                   </span>
-                  <span className="text-stone-400 font-medium">
+                  <span className="text-stone-400 font-medium text-[11px]">
                     Sold: <strong className="text-stone-200">{product.sales_count}</strong>
                   </span>
                 </div>

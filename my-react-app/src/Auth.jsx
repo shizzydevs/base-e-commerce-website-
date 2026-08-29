@@ -1,9 +1,12 @@
 import { useState } from 'react';
+import { supabase } from './supabaseClient';
 import { Sparkles, Mail, Lock, User, ArrowRight, CheckCircle2 } from 'lucide-react';
 
 export default function Auth({ onLogin }) {
   const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -14,22 +17,50 @@ export default function Auth({ onLogin }) {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
+    setSuccessMessage(null);
 
-    setTimeout(() => {
+    try {
+      if (isSignUp) {
+        const { data, error: signUpError } = await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
+          options: {
+            data: { full_name: formData.fullName },
+            emailRedirectTo: window.location.origin,
+          },
+        });
+
+        if (signUpError) throw signUpError;
+
+        if (data?.session) {
+          onLogin(data.session.user);
+        } else {
+          setSuccessMessage('Check your email inbox for the confirmation link to complete registration!');
+        }
+      } else {
+        const { data, error: signInError } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        });
+
+        if (signInError) throw signInError;
+        if (data?.session) {
+          onLogin(data.session.user);
+        }
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
       setLoading(false);
-      onLogin({
-        name: isSignUp ? formData.fullName : formData.email.split('@')[0],
-        email: formData.email,
-      });
-    }, 1000);
+    }
   };
 
   return (
     <div className="min-h-screen bg-stone-900 text-stone-100 font-sans flex items-center justify-center p-4 relative overflow-hidden">
-  
       <div className="absolute top-0 -left-20 w-96 h-96 bg-emerald-600/20 rounded-full blur-3xl pointer-events-none"></div>
       <div className="absolute bottom-0 -right-20 w-96 h-96 bg-amber-600/15 rounded-full blur-3xl pointer-events-none"></div>
 
@@ -50,7 +81,7 @@ export default function Auth({ onLogin }) {
         <div className="flex bg-stone-900/80 p-1 rounded-2xl border border-stone-700/50">
           <button
             type="button"
-            onClick={() => setIsSignUp(false)}
+            onClick={() => { setIsSignUp(false); setError(null); setSuccessMessage(null); }}
             className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all ${
               !isSignUp ? 'bg-emerald-500 text-stone-950 shadow-md' : 'text-stone-400 hover:text-white'
             }`}
@@ -59,7 +90,7 @@ export default function Auth({ onLogin }) {
           </button>
           <button
             type="button"
-            onClick={() => setIsSignUp(true)}
+            onClick={() => { setIsSignUp(true); setError(null); setSuccessMessage(null); }}
             className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all ${
               isSignUp ? 'bg-emerald-500 text-stone-950 shadow-md' : 'text-stone-400 hover:text-white'
             }`}
@@ -67,6 +98,18 @@ export default function Auth({ onLogin }) {
             Sign Up
           </button>
         </div>
+
+        {error && (
+          <div className="p-3 bg-red-500/10 border border-red-500/30 text-red-400 text-xs rounded-xl">
+            {error}
+          </div>
+        )}
+
+        {successMessage && (
+          <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs rounded-xl">
+            {successMessage}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {isSignUp && (

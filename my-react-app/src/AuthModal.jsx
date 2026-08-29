@@ -8,6 +8,7 @@ export default function AuthModal({ isOpen, onClose }) {
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [error, setError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
   const [loading, setLoading] = useState(false);
 
   if (!isOpen) return null;
@@ -15,21 +16,32 @@ export default function AuthModal({ isOpen, onClose }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
+    setSuccessMessage(null);
     setLoading(true);
 
     try {
       if (isSignUp) {
-        const { error: signUpError } = await supabase.auth.signUp({
+        const { data, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
-          options: { data: { full_name: fullName } },
+          options: {
+            data: { full_name: fullName },
+            emailRedirectTo: window.location.origin,
+          },
         });
+
         if (signUpError) throw signUpError;
+
+        if (!data?.session) {
+          setSuccessMessage('Check your email inbox for the confirmation link!');
+          return;
+        }
       } else {
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
+
         if (signInError) throw signInError;
       }
       onClose();
@@ -45,7 +57,7 @@ export default function AuthModal({ isOpen, onClose }) {
       <div className="bg-stone-800 border border-stone-700 rounded-3xl max-w-md w-full p-6 relative shadow-2xl">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 bg-stone-900/80 rounded-full text-stone-400 hover:text-white"
+          className="absolute top-4 right-4 p-2 bg-stone-900/80 rounded-full text-stone-400 hover:text-white transition-colors"
         >
           <X className="w-5 h-5" />
         </button>
@@ -60,6 +72,12 @@ export default function AuthModal({ isOpen, onClose }) {
         {error && (
           <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 text-red-400 text-xs rounded-xl">
             {error}
+          </div>
+        )}
+
+        {successMessage && (
+          <div className="mb-4 p-3 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs rounded-xl">
+            {successMessage}
           </div>
         )}
 
@@ -113,7 +131,7 @@ export default function AuthModal({ isOpen, onClose }) {
 
         <div className="mt-4 text-center">
           <button
-            onClick={() => setIsSignUp(!isSignUp)}
+            onClick={() => { setIsSignUp(!isSignUp); setError(null); setSuccessMessage(null); }}
             className="text-xs text-emerald-400 hover:underline"
           >
             {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}

@@ -1,16 +1,21 @@
-# React + Vite
+# Local Harvest Hub
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A React and Supabase marketplace for local goods. It supports authenticated saved carts and server-authoritative cash-on-delivery orders.
 
-Currently, two official plugins are available:
+## Setup
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+1. Copy `.env.example` to `.env.local` and set your public Supabase URL and anon key.
+2. Run `supabase/migrations/20260829_production_baseline.sql` in the Supabase SQL Editor.
+3. Run `npm run dev`.
 
-## React Compiler
+Do not put a Supabase service-role key in the frontend. Confirm that `products` has the columns noted at the top of the SQL migration before running it.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Commands
 
-## Expanding the ESLint configuration
+- `npm run lint`
+- `npm run test`
+- `npm run build`
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Payments
+
+This release accepts cash on delivery only. It deliberately does not collect card data. To offer card payments, add a server-side Stripe Checkout or Payment Element integration and verify provider webhooks before marking orders paid.

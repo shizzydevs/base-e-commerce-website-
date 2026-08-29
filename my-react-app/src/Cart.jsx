@@ -1,5 +1,5 @@
 import { ArrowLeft, Trash2, Plus, Minus, ShoppingBag, ShieldCheck } from 'lucide-react';
-import { calculateCartSubtotal, DELIVERY_FEE } from './cart';
+import { calculateCartSubtotal, DELIVERY_FEE } from './cartUtils';
 
 export default function Cart({ cart, setCart, error, onBackToStore, onProceedToCheckout }) {
   const handleUpdateQuantity = (productId, delta) => {

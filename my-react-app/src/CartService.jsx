@@ -1,5 +1,5 @@
 import { supabase } from './supabaseClient';
-import { toCartPayload } from './cart';
+import { toCartPayload } from './cartUtils';
 
 export async function fetchUserCart(userId) {
   const { data, error } = await supabase

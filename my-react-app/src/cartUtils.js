@@ -1,15 +1,12 @@
 export const DELIVERY_FEE = 2.99;
 
 export function calculateCartSubtotal(cart) {
-  return cart.reduce(
-    (total, item) => total + Number(item.price) * Number(item.quantity),
-    0
-  );
+  return cart.reduce((total, item) => total + Number(item.price) * Number(item.quantity), 0);
 }
 
 export function calculateCartTotal(cart, tipAmount = 0) {
   const deliveryFee = cart.length > 0 ? DELIVERY_FEE : 0;
-  return calculateCartSubtotal(cart) + deliveryFee + tipAmount;
+  return Math.round((calculateCartSubtotal(cart) + deliveryFee + tipAmount) * 100) / 100;
 }
 
 export function toCartPayload(cart) {

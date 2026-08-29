@@ -15,12 +15,14 @@ export default function App() {
   const [cartError, setCartError] = useState(null);
   
   const isInitialized = useRef(false);
+  const cartRef = useRef([]);
 
   const loadSavedCart = async (userId) => {
     try {
       const savedCart = await fetchUserCart(userId);
+      cartRef.current = savedCart;
       setCart(savedCart);
-    } catch (error) {
+    } catch {
       setCartError('We could not load your saved cart. Please refresh and try again.');
     }
   };
@@ -51,6 +53,7 @@ export default function App() {
             setCurrentScreen((prev) => (prev === 'welcome' ? 'home' : prev));
           }
         } else if (event === 'SIGNED_OUT') {
+          cartRef.current = [];
           setCart([]);
           setCurrentScreen('welcome');
         }
@@ -63,20 +66,18 @@ export default function App() {
   }, []);
 
   const handleSetCart = async (action) => {
-    let previousCart;
-    let newCart;
-    setCart((prevCart) => {
-      previousCart = prevCart;
-      newCart = typeof action === 'function' ? action(prevCart) : action;
-      return newCart;
-    });
+    const previousCart = cartRef.current;
+    const newCart = typeof action === 'function' ? action(previousCart) : action;
+    cartRef.current = newCart;
+    setCart(newCart);
 
     if (!user) return;
 
     setCartError(null);
     try {
       await syncUserCart(newCart);
-    } catch (error) {
+    } catch {
+      cartRef.current = previousCart;
       setCart(previousCart);
       setCartError('Your cart could not be saved. Please try again.');
     }
@@ -114,9 +115,12 @@ export default function App() {
     return (
       <Payment
         cart={cart}
-        setCart={handleSetCart}
         cartError={cartError}
         onBackToCart={() => setCurrentScreen('cart')}
+        onOrderPlaced={() => {
+          cartRef.current = [];
+          setCart([]);
+        }}
         onOrderSuccess={() => setCurrentScreen('home')}
       />
     );

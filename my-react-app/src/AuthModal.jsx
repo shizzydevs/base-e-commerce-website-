@@ -11,15 +11,17 @@ export default function AuthModal({ isOpen, onClose }) {
   const [successMessage, setSuccessMessage] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // Poll for sign-in state once the confirmation message is displayed
+  // Poll for background sign-in using stored credentials once signup email is sent
   useEffect(() => {
     let interval;
-    if (successMessage) {
+    if (successMessage && isSignUp) {
       interval = setInterval(async () => {
-        // Attempt to sign in silently or check existing session state
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (session?.user) {
+        const { data } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        if (data?.session) {
           clearInterval(interval);
           onClose();
           window.location.reload();
@@ -28,7 +30,7 @@ export default function AuthModal({ isOpen, onClose }) {
     }
 
     return () => clearInterval(interval);
-  }, [successMessage, onClose]);
+  }, [successMessage, isSignUp, email, password, onClose]);
 
   if (!isOpen) return null;
 
@@ -52,7 +54,7 @@ export default function AuthModal({ isOpen, onClose }) {
         if (signUpError) throw signUpError;
 
         if (!data?.session) {
-          setSuccessMessage('Check your email inbox! This window will auto-redirect once confirmed.');
+          setSuccessMessage('Check your email inbox! This page will auto-login once confirmed.');
           return;
         }
       } else {

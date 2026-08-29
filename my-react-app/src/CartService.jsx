@@ -75,11 +75,12 @@ export async function createOrder(cartItems, shippingAddress, tipAmount) {
   if (orderError) throw orderError;
 
   // 2. Insert order items
+  // 2. Insert order items
   const orderItems = cartItems.map((item) => ({
     order_id: order.id,
     product_id: item.id,
     quantity: item.quantity,
-    price_at_purchase: item.price,
+    price: item.price, // Changed 'price_at_purchase' to 'price'
   }));
 
   const { error: itemsError } = await supabase

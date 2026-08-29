@@ -12,7 +12,7 @@ import {
   Cookie, 
   Coffee, 
   Smartphone, 
-  Layers
+  Layers 
 } from 'lucide-react';
 
 const CATEGORY_ICONS = {
@@ -89,8 +89,8 @@ export default function Home() {
   }, [selectedCity, selectedCategory, sortBy]);
 
   return (
-    <div className="min-h-screen bg-black text-stone-100 p-4 sm:p-6 lg:p-8 w-full max-w-none">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen bg-black text-stone-100 p-4 sm:p-6 lg:p-8 w-full">
+      <div className="w-full space-y-6">
         {/* City Modal */}
         <CityModal isOpen={isCityModalOpen} onClose={() => setIsCityModalOpen(false)} />
 
@@ -107,7 +107,7 @@ export default function Home() {
 
           <button
             onClick={() => setIsCityModalOpen(true)}
-            className="flex items-center gap-2 bg-stone-900/90 border border-stone-800 hover:border-emerald-500/50 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all text-stone-200 hover:text-white shrink-0"
+            className="flex items-center gap-2 bg-stone-900 border border-stone-800 hover:border-emerald-500/50 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all text-stone-200 hover:text-white shrink-0"
           >
             <MapPin className="w-4 h-4 text-emerald-400 shrink-0" />
             <span>Location: <strong className="text-emerald-400">{currentCity?.name || 'Select City'}</strong></span>
@@ -192,7 +192,7 @@ export default function Home() {
             <p className="text-xs text-stone-500">Try switching categories or locations to view options.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {products.map((product) => (
               <div
                 key={product.id}

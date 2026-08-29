@@ -89,13 +89,18 @@ export default function Home() {
   }, [selectedCity, selectedCategory, sortBy]);
 
   return (
-    <div className="min-h-screen bg-black text-stone-100 p-4 sm:p-6 lg:p-8 w-full">
-      <div className="w-full space-y-6">
+    <div className="min-h-screen bg-stone-950 text-stone-100 p-4 sm:p-6 lg:p-8 w-full relative overflow-hidden">
+      {/* Landing Page Ambient Radial Glow Effects */}
+      <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-emerald-600/15 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-[30%] right-[-10%] w-[600px] h-[600px] bg-emerald-950/20 rounded-full blur-[140px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] left-[20%] w-[500px] h-[500px] bg-emerald-900/10 rounded-full blur-[130px] pointer-events-none" />
+
+      <div className="w-full space-y-6 relative z-10">
         {/* City Modal */}
         <CityModal isOpen={isCityModalOpen} onClose={() => setIsCityModalOpen(false)} />
 
         {/* Top Header & Location Switcher */}
-        <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b border-stone-800">
+        <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b border-stone-800/80">
           <div>
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
               Lebanon Store Hub
@@ -107,7 +112,7 @@ export default function Home() {
 
           <button
             onClick={() => setIsCityModalOpen(true)}
-            className="flex items-center gap-2 bg-stone-900 border border-stone-800 hover:border-emerald-500/50 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all text-stone-200 hover:text-white shrink-0"
+            className="flex items-center gap-2 bg-stone-900/90 border border-stone-800 hover:border-emerald-500/50 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all text-stone-200 hover:text-white shrink-0 shadow-lg"
           >
             <MapPin className="w-4 h-4 text-emerald-400 shrink-0" />
             <span>Location: <strong className="text-emerald-400">{currentCity?.name || 'Select City'}</strong></span>
@@ -121,7 +126,7 @@ export default function Home() {
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold shrink-0 transition-all border ${
               selectedCategory === null
                 ? 'bg-emerald-500 text-stone-950 border-emerald-400 shadow-lg shadow-emerald-500/10'
-                : 'bg-stone-900 border-stone-800 text-stone-400 hover:text-white hover:border-stone-700'
+                : 'bg-stone-900/80 border-stone-800 text-stone-400 hover:text-white hover:border-stone-700'
             }`}
           >
             <Layers className="w-4 h-4 shrink-0" />
@@ -139,7 +144,7 @@ export default function Home() {
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold shrink-0 transition-all border ${
                   isSelected
                     ? 'bg-emerald-500 text-stone-950 border-emerald-400 shadow-lg shadow-emerald-500/10'
-                    : 'bg-stone-900 border-stone-800 text-stone-400 hover:text-white hover:border-stone-700'
+                    : 'bg-stone-900/80 border-stone-800 text-stone-400 hover:text-white hover:border-stone-700'
                 }`}
               >
                 <IconComponent className="w-4 h-4 shrink-0" />
@@ -150,7 +155,7 @@ export default function Home() {
         </div>
 
         {/* Sort & Filter Controls */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-stone-900/50 p-4 border border-stone-800/80 rounded-2xl">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-stone-900/40 backdrop-blur-md p-4 border border-stone-800/80 rounded-2xl">
           <div className="flex items-center gap-2 text-xs text-stone-400 shrink-0">
             <ArrowUpDown className="w-4 h-4 text-emerald-400 shrink-0" />
             <span className="font-semibold tracking-wide">Sort Feed By:</span>
@@ -170,7 +175,7 @@ export default function Home() {
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
                   sortBy === option.id
                     ? 'bg-stone-800 text-emerald-400 border-emerald-500/50 shadow-sm'
-                    : 'bg-stone-950/40 border-stone-800 text-stone-400 hover:text-stone-200'
+                    : 'bg-stone-950/40 border-stone-800/80 text-stone-400 hover:text-stone-200'
                 }`}
               >
                 {option.label}
@@ -196,11 +201,11 @@ export default function Home() {
             {products.map((product) => (
               <div
                 key={product.id}
-                className="bg-stone-900 border border-stone-800 rounded-2xl p-5 flex flex-col justify-between hover:border-stone-700 transition-all shadow-xl group"
+                className="bg-stone-900/70 backdrop-blur-md border border-stone-800/80 rounded-2xl p-5 flex flex-col justify-between hover:border-stone-700 transition-all shadow-xl group"
               >
                 <div>
                   {/* Store Header Info */}
-                  <div className="flex items-center justify-between gap-2 pb-3 mb-4 border-b border-stone-800 text-xs">
+                  <div className="flex items-center justify-between gap-2 pb-3 mb-4 border-b border-stone-800/80 text-xs">
                     <span className="font-bold text-stone-300 truncate">{product.stores.name}</span>
                     {product.stores.website_url && (
                       <a
@@ -250,7 +255,7 @@ export default function Home() {
                   </div>
 
                   {/* Pricing Display */}
-                  <div className="pt-3 border-t border-stone-800 flex items-center justify-between">
+                  <div className="pt-3 border-t border-stone-800/80 flex items-center justify-between">
                     <div>
                       <span className="text-xl font-black text-emerald-400">${product.price_usd}</span>
                       {product.price_lbp && (

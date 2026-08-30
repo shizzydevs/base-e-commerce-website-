@@ -14,7 +14,6 @@ export default function App() {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [cartError, setCartError] = useState(null);
   
-  const isInitialized = useRef(false);
   const cartRef = useRef([]);
 
   const loadSavedCart = async (userId) => {
@@ -28,33 +27,19 @@ export default function App() {
   };
 
   useEffect(() => {
-    // 1. Initial Session Check (e.g. page refreshes or opening magic link in new tab)
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      const currentUser = session?.user ?? null;
-      setUser(currentUser);
-      
-      if (!isInitialized.current) {
-        isInitialized.current = true;
-        if (currentUser) {
-          loadSavedCart(currentUser.id);
-          setIsAuthOpen(false);
-          setCurrentScreen('home');
-        }
-      }
-    });
-
-    // 2. Real-time Auth Listener (Handles magic link redirection events)
+    // Single unified Auth listener
     const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         const currentUser = session?.user ?? null;
         setUser(currentUser);
 
-        if (event === 'SIGNED_IN' || (event === 'INITIAL_SESSION' && currentUser)) {
-          if (currentUser) {
-            await loadSavedCart(currentUser.id);
-            setIsAuthOpen(false);
-            setCurrentScreen('home');
-          }
+        if (currentUser) {
+          // 1. Immediately dismiss modal & navigate to home
+          setIsAuthOpen(false);
+          setCurrentScreen((prev) => (prev === 'welcome' ? 'home' : prev));
+
+          // 2. Fetch cart in the background
+          loadSavedCart(currentUser.id);
         } else if (event === 'SIGNED_OUT') {
           cartRef.current = [];
           setCart([]);

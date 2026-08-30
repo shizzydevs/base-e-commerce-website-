@@ -27,18 +27,15 @@ export default function App() {
   };
 
   useEffect(() => {
-    // Single unified Auth listener
+    // 1. Primary Auth Listener (Handles PKCE code exchange & session restoration)
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (event, session) => {
         const currentUser = session?.user ?? null;
         setUser(currentUser);
 
         if (currentUser) {
-          // 1. Immediately dismiss modal & navigate to home
           setIsAuthOpen(false);
           setCurrentScreen((prev) => (prev === 'welcome' ? 'home' : prev));
-
-          // 2. Fetch cart in the background
           loadSavedCart(currentUser.id);
         } else if (event === 'SIGNED_OUT') {
           cartRef.current = [];
@@ -49,8 +46,26 @@ export default function App() {
       }
     );
 
+    // 2. Cross-Tab Storage Sync (Updates Tab A when Magic Link opens in Tab B)
+    const handleStorageChange = (e) => {
+      if (e.key && e.key.includes('sb-') && e.key.includes('-auth-token')) {
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          const currentUser = session?.user ?? null;
+          if (currentUser) {
+            setUser(currentUser);
+            setIsAuthOpen(false);
+            setCurrentScreen((prev) => (prev === 'welcome' ? 'home' : prev));
+            loadSavedCart(currentUser.id);
+          }
+        });
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
     return () => {
       authListener.subscription.unsubscribe();
+      window.removeEventListener('storage', handleStorageChange);
     };
   }, []);
 

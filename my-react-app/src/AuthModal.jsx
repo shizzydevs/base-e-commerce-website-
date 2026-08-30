@@ -1,156 +1,121 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { supabase } from './supabaseClient';
-import { X, Mail, Lock, User } from 'lucide-react';
+import { Mail, Sparkles, CheckCircle2, AlertCircle, X } from 'lucide-react';
 
 export default function AuthModal({ isOpen, onClose }) {
-  const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState('');
-  const [error, setError] = useState(null);
-  const [successMessage, setSuccessMessage] = useState(null);
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    let interval;
-    if (successMessage && isSignUp) {
-      interval = setInterval(async () => {
-        const { data } = await supabase.auth.signInWithPassword({ email, password });
-        if (data?.session) {
-          clearInterval(interval);
-          onClose();
-        }
-      }, 3000);
-    }
-    return () => clearInterval(interval);
-  }, [successMessage, isSignUp, email, password, onClose]);
+  const [emailSent, setEmailSent] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
   if (!isOpen) return null;
 
-  const handleSubmit = async (e) => {
+  const handleSendMagicLink = async (e) => {
     e.preventDefault();
-    setError(null);
-    setSuccessMessage(null);
     setLoading(true);
+    setErrorMsg('');
 
-    try {
-      if (isSignUp) {
-        const { data, error: signUpError } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: { full_name: fullName },
-            emailRedirectTo: window.location.origin,
-          },
-        });
+    const { error } = await supabase.auth.signInWithOtp({
+      email: email.trim(),
+      options: {
+        emailRedirectTo: window.location.origin,
+      },
+    });
 
-        if (signUpError) throw signUpError;
-
-        if (!data?.session) {
-          setSuccessMessage('Check your email inbox! Page will auto-login when verified.');
-          return;
-        }
-      } else {
-        const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
-        if (signInError) throw signInError;
-      }
-      onClose();
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+    if (error) {
+      setErrorMsg(error.message);
+    } else {
+      setEmailSent(true);
     }
+    setLoading(false);
+  };
+
+  const handleReset = () => {
+    setEmailSent(false);
+    setEmail('');
+    setErrorMsg('');
+    onClose();
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-stone-950/80 backdrop-blur-md flex items-center justify-center p-4">
-      <div className="bg-stone-800 border border-stone-700 rounded-3xl max-w-md w-full p-6 relative shadow-2xl max-h-[90vh] overflow-y-auto">
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 p-2 bg-stone-900/80 rounded-full text-stone-400 hover:text-white transition-colors"
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+      <div className="relative w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-2xl p-6 shadow-2xl">
+        {/* Close Button */}
+        <button 
+          onClick={handleReset}
+          className="absolute top-4 right-4 text-zinc-400 hover:text-white transition-colors"
         >
           <X className="w-5 h-5" />
         </button>
 
-        <h2 className="text-2xl font-black text-white mb-2">
-          {isSignUp ? 'Create Account' : 'Welcome Back'}
-        </h2>
-        <p className="text-xs text-stone-400 mb-6">
-          {isSignUp ? 'Sign up to start saving your cart' : 'Sign in to access your saved items'}
-        </p>
-
-        {error && (
-          <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 text-red-400 text-xs rounded-xl">
-            {error}
-          </div>
-        )}
-
-        {successMessage && (
-          <div className="mb-4 p-3 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs rounded-xl flex items-center gap-2">
-            <span className="relative flex h-2.5 w-2.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-            </span>
-            <span>{successMessage}</span>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {isSignUp && (
-            <div className="relative flex items-center bg-stone-900 border border-stone-700 rounded-xl px-3 py-2.5">
-              <User className="w-4 h-4 text-stone-400 mr-2 shrink-0" />
-              <input
-                type="text"
-                placeholder="Full Name"
-                required
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                className="w-full bg-transparent text-sm text-white focus:outline-none"
-              />
+        {emailSent ? (
+          /* Confirmation State */
+          <div className="text-center py-4">
+            <div className="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center mx-auto mb-4">
+              <CheckCircle2 className="w-6 h-6 text-emerald-400" />
             </div>
-          )}
-
-          <div className="relative flex items-center bg-stone-900 border border-stone-700 rounded-xl px-3 py-2.5">
-            <Mail className="w-4 h-4 text-stone-400 mr-2 shrink-0" />
-            <input
-              type="email"
-              placeholder="Email Address"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-transparent text-sm text-white focus:outline-none"
-            />
+            <h3 className="text-xl font-bold text-white">Check your email</h3>
+            <p className="text-zinc-400 text-sm mt-2 leading-relaxed">
+              We sent a login link to <span className="text-emerald-400 font-medium">{email}</span>. Click the link in your inbox to sign in.
+            </p>
+            <button
+              onClick={() => setEmailSent(false)}
+              className="mt-6 text-xs text-zinc-500 hover:text-zinc-300 underline"
+            >
+              Didn't get the email? Try again
+            </button>
           </div>
+        ) : (
+          /* Input State */
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center">
+                <Mail className="w-4 h-4 text-emerald-400" />
+              </div>
+              <h3 className="text-xl font-bold text-white">Sign In to LocalHarvest</h3>
+            </div>
+            <p className="text-zinc-400 text-sm mb-6">
+              Enter your email address to receive a secure login link. No password required.
+            </p>
 
-          <div className="relative flex items-center bg-stone-900 border border-stone-700 rounded-xl px-3 py-2.5">
-            <Lock className="w-4 h-4 text-stone-400 mr-2 shrink-0" />
-            <input
-              type="password"
-              placeholder="Password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-transparent text-sm text-white focus:outline-none"
-            />
+            {errorMsg && (
+              <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center gap-2 text-red-400 text-xs">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{errorMsg}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSendMagicLink} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-zinc-400 mb-1.5 uppercase tracking-wider">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="name@example.com"
+                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-emerald-500 transition-colors"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-bold py-2.5 rounded-xl transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+              >
+                {loading ? (
+                  <>
+                    <Sparkles className="w-4 h-4 animate-spin" /> Sending Link...
+                  </>
+                ) : (
+                  'Send Magic Link'
+                )}
+              </button>
+            </form>
           </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-stone-950 font-bold rounded-xl transition-colors disabled:opacity-50"
-          >
-            {loading ? 'Processing...' : isSignUp ? 'Sign Up' : 'Sign In'}
-          </button>
-        </form>
-
-        <div className="mt-4 text-center">
-          <button
-            onClick={() => { setIsSignUp(!isSignUp); setError(null); setSuccessMessage(null); }}
-            className="text-xs text-emerald-400 hover:underline"
-          >
-            {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
-          </button>
-        </div>
+        )}
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from './supabaseClient';
 import { Mail, Sparkles, CheckCircle2, AlertCircle, X } from 'lucide-react';
 
@@ -7,6 +7,28 @@ export default function AuthModal({ isOpen, onClose }) {
   const [loading, setLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+
+  // Auto-close modal if an active session is detected
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        onClose();
+      }
+    };
+    checkSession();
+
+    // Listen for auth state changes (e.g. Magic Link click completion)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session) {
+        onClose();
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 

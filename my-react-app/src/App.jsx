@@ -28,6 +28,7 @@ export default function App() {
   };
 
   useEffect(() => {
+    // 1. Initial Session Check (e.g. page refreshes or opening magic link in new tab)
     supabase.auth.getSession().then(({ data: { session } }) => {
       const currentUser = session?.user ?? null;
       setUser(currentUser);
@@ -36,25 +37,28 @@ export default function App() {
         isInitialized.current = true;
         if (currentUser) {
           loadSavedCart(currentUser.id);
+          setIsAuthOpen(false);
           setCurrentScreen('home');
         }
       }
     });
 
+    // 2. Real-time Auth Listener (Handles magic link redirection events)
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         const currentUser = session?.user ?? null;
         setUser(currentUser);
 
-        if (event === 'SIGNED_IN') {
+        if (event === 'SIGNED_IN' || (event === 'INITIAL_SESSION' && currentUser)) {
           if (currentUser) {
             await loadSavedCart(currentUser.id);
             setIsAuthOpen(false);
-            setCurrentScreen((prev) => (prev === 'welcome' ? 'home' : prev));
+            setCurrentScreen('home');
           }
         } else if (event === 'SIGNED_OUT') {
           cartRef.current = [];
           setCart([]);
+          setIsAuthOpen(false);
           setCurrentScreen('welcome');
         }
       }
@@ -136,4 +140,4 @@ export default function App() {
       <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
     </>
   );
-} 
+}
